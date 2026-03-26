@@ -1,0 +1,54 @@
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: frontend_test_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "33061:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: frontend_test_app
+    restart: unless-stopped
+    ports:
+      - "4000:3000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: frontend_test_pma
+    restart: unless-stopped
+    ports:
+      - "4001:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      UPLOAD_LIMIT: 50M
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
