@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Departments</title>
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/frontend/departments/department.css">
+</head>
+<body>
+
+<header class="header">
+    <a href="/frontend/users/users.html" class="nav-link">Users</a>
+    <a href="/frontend/departments/department.html" class="nav-link active">Departments</a>
+</header>
+
+<div class="container">
+
+    <h2 class="page-title">แผนกทั้งหมด</h2>
+
+    <!-- Cards -->
+    <div id="deptCards" class="cards">
+        <p class="loading-text">กำลังโหลด...</p>
+    </div>
+
+    <!-- Table -->
+    <div class="tableDetail">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>ชื่อแผนก</th>
+                    <th>จำนวนสมาชิก</th>
+                    <th>Created</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="deptTable">
+                <tr><td colspan="5" style="text-align:center">กำลังโหลด...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Modal -->
+<div id="deptUsersModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="deptUsersTitle"></h3>
+            <button class="modal-close" onclick="closeDeptModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+            <div id="deptUsersBody"></div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="search-btn" onclick="closeDeptModal()">ปิด</button>
+        </div>
+    </div>
+</div>
+
+<script src="/frontend/departments/department.js"></script>
+<script>
+    window.onload = loadDepartments;
+</script>
+
+</body>
+</html>
