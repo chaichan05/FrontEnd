@@ -4,10 +4,10 @@ const pool = require('../db');
 const getDepartments = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      `SELECT d.id, d.name, COUNT(u.id) AS user_count
+      `SELECT d.id, d.name, d.created_at, COUNT(u.id) AS user_count
        FROM departments d
        LEFT JOIN users u ON d.id = u.department_id
-       GROUP BY d.id, d.name
+       GROUP BY d.id, d.name, d.created_at
        ORDER BY d.name ASC`
     );
     res.json({ success: true, data: rows });

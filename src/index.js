@@ -4,6 +4,7 @@ const express           = require('express');
 const cors              = require('cors');
 const usersRouter       = require('./routes/users');
 const departmentsRouter = require('./routes/departments');
+const addressesRouter   = require('./routes/addresses');
 const errorHandler      = require('./middleware/errorHandler');
 
 const app  = express();
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 
 app.use('/users',       usersRouter);
 app.use('/departments', departmentsRouter);
+app.use('/addresses',   addressesRouter);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Route ${req.method} ${req.path} not found` });

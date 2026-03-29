@@ -16,8 +16,8 @@ async function loadUsers() {
         const params = new URLSearchParams();
         params.set("page", currentPage);
         params.set("limit", 20);
-        params.set("sort", "u.id");      // 🔥 เรียงตาม id
-        params.set("order", "asc");      // 🔥 จากน้อยไปมาก
+        params.set("sort", "u.id");      //  เรียงตาม id
+        params.set("order", "asc");      // จากน้อยไปมาก
 
         if (state.search) params.set("search", state.search);
         if (state.gender) params.set("gender", state.gender);
