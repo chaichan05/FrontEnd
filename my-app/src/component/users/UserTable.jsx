@@ -3,7 +3,7 @@ const UserTable = ({ currentData, data, itemsPerPage, currentPage, setCurrentPag
 
     return (
         <>
-            {/* ── Table ── */}
+            {/* ตาราง*/}
             <div className="overflow-x-auto bg-white shadow-lg rounded-xl">
                 <table className="min-w-full text-sm text-left">
                     <thead className="bg-[#6ebfd5] text-white">
@@ -44,7 +44,7 @@ const UserTable = ({ currentData, data, itemsPerPage, currentPage, setCurrentPag
                 </table>
             </div>
 
-            {/* ── Pagination ── */}
+            {/* Navigation เปลี่ยนจอ*/}
             <div className="flex justify-center items-center gap-2 mt-6">
                 <button
                     onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}

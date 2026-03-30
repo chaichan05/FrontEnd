@@ -2,6 +2,8 @@ import { useDepartment } from "../department/hooks/useDepartment";
 import DeptUserList from "../department/components/DeptUserList";
 import { LoadingState, EmptyState, ErrorState } from "../department/components/DeptUIHelpers";
 
+
+//DepartmentComponent คือคอมโพเนนต์หลักที่แสดงข้อมูลแผนกและรายชื่อพนักงานในแผนกนั้น โดยใช้ hook useDepartment เพื่อจัดการสถานะและฟังก์ชันต่างๆ ที่เกี่ยวข้องกับข้อมูลแผนกและพนักงาน
 const DepartmentComponent = () => {
     const {
         departments, addresses,
@@ -22,9 +24,9 @@ const DepartmentComponent = () => {
             {/* ── Departments Table ── */}
             <div className="max-w-6xl mx-auto mb-8">
                 <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                    {loadingDepts ? (
+                    {loadingDepts ? ( //แสดงสถานะโหลดข้อมูลแผนก
                         <LoadingState message="กำลังโหลดข้อมูลแผนก..." />
-                    ) : errorDepts ? (
+                    ) : errorDepts ? ( //แสดงสถานะเกิดข้อผิดพลาดในการโหลดข้อมูลแผนก
                         <ErrorState message={errorDepts} onRetry={fetchDepartments} />
                     ) : departments.length === 0 ? (
                         <EmptyState message="ไม่มีข้อมูลแผนก" />
@@ -39,7 +41,7 @@ const DepartmentComponent = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {departments.map((dept) => {
+                                {departments.map((dept) => { //แสดงข้อมูลแต่ละแผนกในตาราง โดยใช้ map เพื่อวนลูปผ่านข้อมูลแผนกและสร้างแถวสำหรับแต่ละแผนก
                                     const count = deptUserCountMap[dept.id] ?? "–";
                                     return (
                                         <tr
@@ -71,6 +73,8 @@ const DepartmentComponent = () => {
                     )}
                 </div>
             </div>
+
+            { /* เลือกแสดงรายชื่อพนักงานในแผนกที่ถูกเลือก โดยตรวจสอบว่า selectedDept มีค่าและไม่มีการโหลดข้อมูลแผนกหรือเกิดข้อผิดพลาดในการโหลดข้อมูลแผนก */ }
             {selectedDept && !loadingDepts && !errorDepts && (
                 <div className="max-w-6xl mx-auto">
                     <DeptUserList

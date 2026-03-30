@@ -40,13 +40,13 @@ export const useUsers = () => {
         }, 300);
     };
 
-    // ── Fetch ──
+    // ── Fetch ── ฟังก์ชัน fetchUsers ใช้โหลดข้อมูลผู้ใช้จาก API โดยรับพารามิเตอร์สำหรับการค้นหา (search), การกรอง
     const fetchUsers = async (search = "", gender = "", deptId = "", sort = "") => {
         const params = new URLSearchParams({ limit: 100 });
         if (search) params.set("search", search);
         if (gender) params.set("gender", gender);
         if (deptId) params.set("department_id", deptId);
-        if (sort)   params.set("sort", sort);
+        if (sort) params.set("sort", sort);
 
         const [userRes, deptRes, addRes] = await Promise.all([
             fetch(`http://localhost:4000/users?${params}`),
@@ -62,20 +62,20 @@ export const useUsers = () => {
         const addressMap = {};
         addresses.forEach(a => { addressMap[a.user_id] = a; });
 
-        const usersWithDept = userJson.data.users.map(u => ({
+        const usersWithDept = userJson.data.users.map(u => ({ // เพิ่ม department_name และ address ลงในแต่ละ user
             ...u,
             department_name: depts.find(d => d.id === Number(u.department_id))?.name || null,
             address: addressMap[u.id] || null,
         }));
 
-        const sorted = [...usersWithDept].sort((a, b) => {
+        const sorted = [...usersWithDept].sort((a, b) => { // เรียงข้อมูลตาม sortBy
             switch (sort) {
                 case "u.first_name": return (a.first_name || "").localeCompare(b.first_name || "");
-                case "u.last_name":  return (a.last_name  || "").localeCompare(b.last_name  || "");
-                case "u.age":        return (a.age || 0) - (b.age || 0);
+                case "u.last_name": return (a.last_name || "").localeCompare(b.last_name || "");
+                case "u.age": return (a.age || 0) - (b.age || 0);
                 case "u.created_at": return new Date(a.created_at) - new Date(b.created_at);
-                case "d.name":       return (a.department_name || "").localeCompare(b.department_name || "");
-                default:             return a.id - b.id;
+                case "d.name": return (a.department_name || "").localeCompare(b.department_name || "");
+                default: return a.id - b.id;
             }
         });
 
@@ -90,13 +90,13 @@ export const useUsers = () => {
         fetchUsers(searchTerm, genderFilter, departmentFilter, sortBy);
     }, [searchTerm, genderFilter, departmentFilter, sortBy]);
 
-    // ── Pagination ──
-    const indexOfLast  = currentPage * itemsPerPage;
+    // ── Pagination ── เลื่อนจอ
+    const indexOfLast = currentPage * itemsPerPage;
     const indexOfFirst = indexOfLast - itemsPerPage;
-    const currentData  = data.slice(indexOfFirst, indexOfLast);
-    const totalPages   = Math.ceil(data.length / itemsPerPage);
+    const currentData = data.slice(indexOfFirst, indexOfLast);
+    const totalPages = Math.ceil(data.length / itemsPerPage);
 
-    // ── Delete ──
+    // ── Delete ── ลบข้อมูล
     const handleDelete = async (user) => {
         const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
         if (!window.confirm(`คุณต้องการลบ ${fullName || "user นี้"} ใช่ไหม?`)) return;
@@ -115,16 +115,16 @@ export const useUsers = () => {
         }
     };
 
-    // ── Edit ──
+    // ── Edit ── แก้ไขข้อมูล
     const handleEdit = (user) => {
         setEditingUser(user);
         updateFormData({
-            first_name:    user.first_name,
-            last_name:     user.last_name,
-            email:         user.email,
-            phone:         user.phone,
-            age:           user.age,
-            gender:        user.gender,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            phone: user.phone,
+            age: user.age,
+            gender: user.gender,
             department_id: user.department_id || "",
         });
         setIsEditOpen(true);
@@ -156,25 +156,25 @@ export const useUsers = () => {
         }
     };
 
-    // ── Create ──
+    // ── Create ── สร้างข้อมูลใหม่
     const handleCreateFormChange = (e) => {
         const { name, value } = e.target;
         updateNewUserData({ [name]: value });
     };
 
-    const handleCreateUser = async () => {
+    const handleCreateUser = async () => { // ตรวจสอบข้อมูลที่จำเป็นก่อนส่งคำขอสร้างผู้ใช้ใหม่
         if (!newUserData.first_name || !newUserData.last_name || !newUserData.email) {
             alert("กรุณากรอก first_name, last_name, email");
             return;
         }
         try {
             const userData = {
-                first_name:    newUserData.first_name,
-                last_name:     newUserData.last_name,
-                email:         newUserData.email,
-                phone:         newUserData.phone         || null,
-                age:           newUserData.age           || null,
-                gender:        newUserData.gender        || null,
+                first_name: newUserData.first_name,
+                last_name: newUserData.last_name,
+                email: newUserData.email,
+                phone: newUserData.phone || null,
+                age: newUserData.age || null,
+                gender: newUserData.gender || null,
                 department_id: newUserData.department_id || null,
             };
 
@@ -192,11 +192,11 @@ export const useUsers = () => {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        user_id:     userId,
-                        house_no:    newUserData.house_no    || null,
-                        street:      newUserData.street      || null,
-                        district:    newUserData.district    || null,
-                        province:    newUserData.province    || null,
+                        user_id: userId,
+                        house_no: newUserData.house_no || null,
+                        street: newUserData.street || null,
+                        district: newUserData.district || null,
+                        province: newUserData.province || null,
                         postal_code: newUserData.postal_code || null,
                     }),
                 });
@@ -204,9 +204,9 @@ export const useUsers = () => {
 
             addUserToData({
                 ...userData,
-                id:              userId,
-                created_at:      new Date().toISOString(),
-                updated_at:      new Date().toISOString(),
+                id: userId,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
                 department_name: departments.find(d => d.id === Number(userData.department_id))?.name || null,
             });
 

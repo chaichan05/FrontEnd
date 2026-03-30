@@ -28,7 +28,7 @@ export const useDepartment = () => {
     const [errorDepts, setErrorDepts]     = useState(null);
     const [errorUsers, setErrorUsers]     = useState(null);
 
-    // ── Fetch users ของแผนก ──────────────────────────────────────────────
+    // ── Fetch users ใช้โหลดรายชื่อพนักงานในแผนกที่ถูกเลือก โดยรับ deptId เป็นพารามิเตอร์และอัปเดตสถานะการโหลดและข้อผิดพลาดตามผลลัพธ์ของการเรียก API
     const fetchDeptUsers = useCallback(async (deptId) => {
         setLoadingUsers(true);
         setErrorUsers(null);
@@ -43,7 +43,7 @@ export const useDepartment = () => {
         }
     }, []);
 
-    // ── Fetch departments ────────────────────────────────────────────────
+    // ── Fetch departments ใช้โหลดข้อมูลแผนกทั้งหมดและจำนวนพนักงานในแต่ละแผนก โดยจะเรียก fetchDeptUsers สำหรับแผนกที่ถูกเลือกตาม query parameter หรือแผนกแรกในรายการ และอัปเดตสถานะการโหลดและข้อผิดพลาดตามผลลัพธ์ของการเรียก API
     const fetchDepartments = useCallback(async () => {
         setLoadingDepts(true);
         setErrorDepts(null);
@@ -68,7 +68,7 @@ export const useDepartment = () => {
         }
     }, [fetchDeptUsers]);
 
-    // ── Fetch addresses ──────────────────────────────────────────────────
+    // ── Fetch addresses ใช้โหลดข้อมูลที่อยู่ของพนักงานทั้งหมดเมื่อคอมโพเนนต์ถูก mount และจัดเก็บข้อมูลที่อยู่ใน state addresses โดยจะจับข้อผิดพลาดและตั้งค่า addresses เป็นอาร์เรย์ว่างหากการโหลดล้มเหลว
     useEffect(() => {
         userService.getAllAddresses().then(setAddresses).catch(() => setAddresses([]));
     }, []);
@@ -77,7 +77,7 @@ export const useDepartment = () => {
         fetchDepartments();
     }, [fetchDepartments]);
 
-    // ── Handle popstate (back/forward browser) ───────────────────────────
+    // ── Handle popstate (back/forward browser) ใช้ตรวจจับการเปลี่ยนแปลงของ URL เมื่อผู้ใช้กดปุ่ม back หรือ forward ในเบราว์เซอร์ และอัปเดต selectedDept และโหลดรายชื่อพนักงานใหม่ตาม query parameter ที่เปลี่ยนแปลง
     useEffect(() => {
         const handlePop = () => {
             const id = getQueryDeptId();
@@ -93,13 +93,13 @@ export const useDepartment = () => {
         return () => window.removeEventListener("popstate", handlePop);
     }, [departments, fetchDeptUsers]);
 
-    // ── Click handlers ───────────────────────────────────────────────────
+    // ── Click handlers ใช้จัดการเหตุการณ์เมื่อผู้ใช้คลิกที่แผนกหรือพนักงาน โดย handleDeptClick จะอัปเดต selectedDept และโหลดรายชื่อพนักงานใหม่ตามแผนกที่ถูกเลือก ส่วน handleUserClick จะอัปเดต selectedUser และเปิดโมดัลแสดงรายละเอียดของพนักงาน
     const handleDeptClick = (dept) => {
         setSelectedDept(dept);
         setQueryDeptId(dept.id);
         fetchDeptUsers(dept.id);
     };
-
+    //ใช้จัดการเหตุการณ์เมื่อผู้ใช้คลิกที่แผนกหรือพนักงาน โดย handleDeptClick จะอัปเดต selectedDept และโหลดรายชื่อพนักงานใหม่ตามแผนกที่ถูกเลือก ส่วน handleUserClick จะอัปเดต selectedUser และเปิดโมดัลแสดงรายละเอียดของพนักงาน
     const handleUserClick = (user) => {
         setSelectedUser(user);
         setIsUserOpen(true);

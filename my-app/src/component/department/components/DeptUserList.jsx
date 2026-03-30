@@ -1,6 +1,6 @@
 import { Display, GenderBadge, AddressBlock, LoadingState, EmptyState, ErrorState } from "../components/DeptUIHelpers";
 
-// ─── User Card ───────────────────────────────────────────────────────────
+//User Card ใช้แสดงข้อมูลพื้นฐานของพนักงานในรูปแบบการ์ดที่สวยงาม
 const UserCard = ({ user, onClick }) => (
     <div
         onClick={() => onClick(user)}
@@ -15,7 +15,7 @@ const UserCard = ({ user, onClick }) => (
     </div>
 );
 
-// ─── User Detail Modal ───────────────────────────────────────────────────
+//User Detail Modal ใข้แสดงรายละเอียดของพนักงานในรูปแบบโมดัลที่มีการจัดวางข้อมูลอย่างเป็นระเบียบและสวยงาม โดยมีปุ่มให้ปิดโมดัลเมื่อดูข้อมูลเสร็จแล้ว
 const UserDetailModal = ({ user, address, onClose }) => (
     <div className="fixed inset-0 flex justify-center items-center backdrop-blur-sm bg-black/20 z-50">
         <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
@@ -51,7 +51,7 @@ const UserDetailModal = ({ user, address, onClose }) => (
     </div>
 );
 
-// ─── DeptUserList ────────────────────────────────────────────────────────
+//DeptUserList ใช้แสดงรายชื่อพนักงานในแผนกที่ถูกเลือก 
 const DeptUserList = ({
     selectedDept,
     deptUsers,
@@ -70,7 +70,7 @@ const DeptUserList = ({
 
     return (
         <>
-            {/* ── Department Detail Card ── */}
+            {/* ใช้แสดงข้อมูลแผนก */}
             <div className="bg-white rounded-lg shadow-lg p-8 mb-6 border-l-4 border-[#6ebfd5]">
                 <h2 className="text-3xl font-bold text-slate-800 mb-4">แผนก {selectedDept.name}</h2>
                 <div className="flex items-center gap-3">
@@ -81,7 +81,7 @@ const DeptUserList = ({
                 </div>
             </div>
 
-            {/* ── User List ── */}
+            {/* ใช้แสดงรายชื่อพนักงาน */}
             <div className="bg-white rounded-lg shadow-lg p-8">
                 <h3 className="text-2xl font-bold text-slate-800 mb-6 border-b pb-3">
                     รายชื่อพนักงาน แผนก {selectedDept.name}
@@ -102,7 +102,7 @@ const DeptUserList = ({
                 )}
             </div>
 
-            {/* ── User Detail Modal ── */}
+            {/* ใช้แสดงรายละเอียดของพนักงาน */}
             {isUserOpen && selectedUser && (
                 <UserDetailModal
                     user={selectedUser}

@@ -28,10 +28,10 @@ const UsersComponent = () => {
         <div className="min-h-screen bg-slate-50 p-6">
             <h1 className="text-3xl font-bold text-slate-700 text-center mb-6">Users</h1>
 
-            {/* ── Search + Filter + Sort bar ── */}
+            {/* แบบฟอร์มค้นหาและกรอง */}
             <div className="flex flex-wrap gap-3 mb-6">
 
-                {/* Search (debounced 300ms) */}
+                {/* Search */}
                 <input
                     type="text"
                     placeholder="ค้นหา ชื่อ/นามสกุล/อีเมล..."
@@ -64,7 +64,7 @@ const UsersComponent = () => {
                     ))}
                 </select>
 
-                {/* Sort */}
+                {/* Sort เรียง */}
                 <select
                     value={sortBy}
                     onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }}
@@ -86,7 +86,7 @@ const UsersComponent = () => {
                 </button>
             </div>
 
-            {/* ── Table + Pagination ── */}
+            {/* ── Table + Pagination ── ใช้ Navigation ดึงข้อมูล */}
             <UserTable
                 currentData={currentData}
                 data={data}
@@ -99,7 +99,7 @@ const UsersComponent = () => {
                 handleDelete={handleDelete}
             />
 
-            {/* ── View Modal ── */}
+            {/* ── View Modal ── ดูข้อมูลรายละเอียด */}
             {isOpen && selectedUser && (
                 <div className="fixed inset-0 flex justify-center items-center backdrop-blur-sm bg-black/20 z-50">
                     <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
@@ -110,7 +110,7 @@ const UsersComponent = () => {
                                 { label: "Email", value: selectedUser.email },
                                 { label: "Phone", value: selectedUser.phone },
                                 { label: "Age", value: selectedUser.age },
-                                { label: "Department", value: selectedUser.department?.name },
+                                { label: "Department", value: selectedUser.department?.name || "ไม่มีข้อมูล" },
                             ].map(({ label, value }) => (
                                 <div key={label} className="flex justify-between items-center py-2 border-b border-gray-100">
                                     <strong className="text-slate-600">{label}:</strong>
@@ -142,7 +142,7 @@ const UsersComponent = () => {
                                         {selectedUser.address.postal_code && <p className="text-slate-500">รหัสไปรษณีย์ {selectedUser.address.postal_code}</p>}
                                     </div>
                                 ) : (
-                                    <span className="text-slate-400">–</span>
+                                    <span className="text-slate-400">ไม่มีข้อมูล</span>
                                 )}
                             </div>
                             {[
@@ -163,7 +163,7 @@ const UsersComponent = () => {
                 </div>
             )}
 
-            {/* ── Edit Modal ── */}
+            {/* ── Edit Modal ── แก้ไขข้อมูล */}
             {isEditOpen && editingUser && (
                 <div className="fixed inset-0 flex justify-center items-center backdrop-blur-sm bg-black/20 z-50">
                     <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
@@ -212,7 +212,7 @@ const UsersComponent = () => {
                 </div>
             )}
 
-            {/* ── Create Modal ── */}
+            {/* ── Create Modal ── สร้างข้อมูลใหม่ */}
             {isCreateOpen && (
                 <div className="fixed inset-0 flex justify-center items-center backdrop-blur-sm bg-black/20 z-50">
                     <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
