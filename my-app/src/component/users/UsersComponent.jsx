@@ -1,225 +1,28 @@
-import { useEffect, useRef, useState } from "react";
-import { useUserStore } from "../../store/userStore";
+import { useUsers } from "../../component/users/hook/UserUsers";
+import UserTable from "../users/UserTable";
 
 const UsersComponent = () => {
     const {
-        data, setData,
-        departments, setDepartments,
-        searchTerm, setSearchTerm,
+        data, departments,
         currentPage, setCurrentPage,
         selectedUser, setSelectedUser,
         isOpen, setIsOpen,
         isEditOpen, setIsEditOpen,
-        editingUser, setEditingUser,
-        formData, updateFormData,
+        editingUser,
+        formData,
         isCreateOpen, setIsCreateOpen,
-        newUserData, updateNewUserData,
+        newUserData,
         isAddressOpen, setIsAddressOpen,
-        addUserToData, updateUserInData, removeUserFromData,
+        inputValue, genderFilter, setGenderFilter,
+        departmentFilter, setDepartmentFilter,
+        sortBy, setSortBy,
+        currentData, totalPages, itemsPerPage,
+        handleSearchChange,
+        handleDelete,
+        handleEdit, handleFormChange, handleSaveEdit,
+        handleCreateFormChange, handleCreateUser,
         resetCreateForm, resetEditForm,
-    } = useUserStore();
-
-    const itemsPerPage = 10;
-
-    // ── Filter / Sort state ──
-    const [genderFilter, setGenderFilter] = useState("");
-    const [departmentFilter, setDepartmentFilter] = useState("");
-    const [sortBy, setSortBy] = useState("u.id");
-
-    // ── Debounce search ──
-    const [inputValue, setInputValue] = useState(searchTerm);
-    const debounceRef = useRef(null);
-
-    const handleSearchChange = (e) => {
-        const val = e.target.value;
-        setInputValue(val);
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-            setSearchTerm(val);
-            setCurrentPage(1);
-        }, 300);
-    };
-
-    // ── Fetch with query params ──
-    const fetchUsers = async (search = "", gender = "", deptId = "", sort = "") => {
-        const params = new URLSearchParams({ limit: 100 });
-        if (search) params.set("search", search);
-        if (gender) params.set("gender", gender);
-        if (deptId) params.set("department_id", deptId);
-        if (sort) params.set("sort", sort);
-
-        const [userRes, deptRes, addRes] = await Promise.all([
-            fetch(`http://localhost:4000/users?${params}`),
-            fetch("http://localhost:4000/departments"),
-            fetch("http://localhost:4000/addresses"),
-        ]);
-        const [userJson, deptJson, addJson] = await Promise.all([
-            userRes.json(), deptRes.json(), addRes.json(),
-        ]);
-
-        const depts = deptJson.data;
-        const addresses = addJson.data;
-        const addressMap = {};
-        addresses.forEach(a => { addressMap[a.user_id] = a; });
-
-        const usersWithDept = userJson.data.users.map(u => ({
-            ...u,
-            department_name: depts.find(d => d.id === Number(u.department_id))?.name || null,
-            address: addressMap[u.id] || null,
-        }));
-
-        const sorted = [...usersWithDept].sort((a, b) => {
-            switch (sort) {
-                case "u.first_name": return (a.first_name || "").localeCompare(b.first_name || "");
-                case "u.last_name": return (a.last_name || "").localeCompare(b.last_name || "");
-                case "u.age": return (a.age || 0) - (b.age || 0);
-                case "u.created_at": return new Date(a.created_at) - new Date(b.created_at);
-                case "d.name": return (a.department_name || "").localeCompare(b.department_name || "");
-                default: return a.id - b.id; // u.id หรือไม่มี sort
-            }
-        });
-
-        setData(sorted);
-        setDepartments(depts);
-    };
-
-    // Initial load
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    // Re-fetch when filter / sort / search changes + reset page to 1
-    useEffect(() => {
-        setCurrentPage(1);
-        fetchUsers(searchTerm, genderFilter, departmentFilter, sortBy);
-    }, [searchTerm, genderFilter, departmentFilter, sortBy]);
-
-    // ── Pagination (server already filtered/sorted) ──
-    const indexOfLast = currentPage * itemsPerPage;
-    const indexOfFirst = indexOfLast - itemsPerPage;
-    const currentData = data.slice(indexOfFirst, indexOfLast);
-
-    // ── Delete ──
-    const handleDelete = async (user) => {
-        const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
-        if (!window.confirm(`คุณต้องการลบ ${fullName || "user นี้"} ใช่ไหม?`)) return;
-
-        const oldData = data;
-        removeUserFromData(user.id);
-
-        try {
-            const res = await fetch(`http://localhost:4000/users/${user.id}`, { method: "DELETE" });
-            if (!res.ok) throw new Error("Delete failed");
-            alert(`ลบ ${fullName} สำเร็จ`);
-        } catch (err) {
-            setData(oldData);
-            alert(`ลบ ${fullName} ไม่สำเร็จ`);
-            console.error(err);
-        }
-    };
-
-    // ── Edit ──
-    const handleEdit = (user) => {
-        setEditingUser(user);
-        updateFormData({
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            phone: user.phone,
-            age: user.age,
-            gender: user.gender,
-            department_id: user.department_id || "",
-        });
-        setIsEditOpen(true);
-    };
-
-    const handleFormChange = (e) => {
-        const { name, value } = e.target;
-        updateFormData({ [name]: value });
-    };
-
-    const handleSaveEdit = async () => {
-        if (!editingUser) return;
-        try {
-            const res = await fetch(`http://localhost:4000/users/${editingUser.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
-            if (!res.ok) throw new Error("Update failed");
-            updateUserInData(editingUser.id, {
-                ...formData,
-                department_name: departments.find(d => d.id === Number(formData.department_id))?.name || null,
-            });
-            resetEditForm();
-            alert("แก้ไขสำเร็จ");
-        } catch (err) {
-            alert("แก้ไขไม่สำเร็จ");
-            console.error(err);
-        }
-    };
-
-    // ── Create ──
-    const handleCreateFormChange = (e) => {
-        const { name, value } = e.target;
-        updateNewUserData({ [name]: value });
-    };
-
-    const handleCreateUser = async () => {
-        if (!newUserData.first_name || !newUserData.last_name || !newUserData.email) {
-            alert("กรุณากรอก first_name, last_name, email");
-            return;
-        }
-        try {
-            const userData = {
-                first_name: newUserData.first_name,
-                last_name: newUserData.last_name,
-                email: newUserData.email,
-                phone: newUserData.phone || null,
-                age: newUserData.age || null,
-                gender: newUserData.gender || null,
-                department_id: newUserData.department_id || null,
-            };
-            const res = await fetch("http://localhost:4000/users", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(userData),
-            });
-            if (!res.ok) throw new Error("Create user failed");
-            const result = await res.json();
-            const userId = result.data.insertId;
-
-            if (isAddressOpen && (newUserData.house_no || newUserData.street || newUserData.district || newUserData.province)) {
-                const addressData = {
-                    user_id: userId,
-                    house_no: newUserData.house_no || null,
-                    street: newUserData.street || null,
-                    district: newUserData.district || null,
-                    province: newUserData.province || null,
-                    postal_code: newUserData.postal_code || null,
-                };
-                await fetch("http://localhost:4000/addresses", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(addressData),
-                });
-            }
-
-            addUserToData({
-                ...userData,
-                id: userId,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                department_name: departments.find(d => d.id === Number(userData.department_id))?.name || null,
-            });
-
-            resetCreateForm();
-            alert("เพิ่ม user สำเร็จ");
-        } catch (err) {
-            alert("เพิ่ม user ไม่สำเร็จ");
-            console.error(err);
-        }
-    };
+    } = useUsers();
 
     return (
         <div className="min-h-screen bg-slate-50 p-6">
@@ -283,69 +86,18 @@ const UsersComponent = () => {
                 </button>
             </div>
 
-            {/* ── Table ── */}
-            <div className="overflow-x-auto bg-white shadow-lg rounded-xl">
-                <table className="min-w-full text-sm text-left">
-                    <thead className="bg-[#6ebfd5] text-white">
-                        <tr>
-                            {["ID", "First Name", "Last Name", "Age", "Gender", "Email", "Phone", "Department", "Actions"]
-                                .map(h => <th key={h} className="px-4 py-3 text-center">{h}</th>)}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {currentData.map(u => (
-                            <tr key={u.id} className="border-b bg-white hover:bg-slate-50 duration-200 text-slate-700">
-                                <td className="px-4 py-2">{u.id}</td>
-                                <td className="px-4 py-2">{u.first_name}</td>
-                                <td className="px-4 py-2">{u.last_name}</td>
-                                <td className="px-4 py-2">{u.age}</td>
-                                <td className="px-4 py-2">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${u.gender === "male" ? "bg-blue-700 text-white" :
-                                        u.gender === "female" ? "bg-pink-400 text-white" :
-                                            "bg-gray-400 text-white"}`}>
-                                        {u.gender || "–"}
-                                    </span>
-                                </td>
-                                <td className="px-4 py-2">{u.email}</td>
-                                <td className="px-4 py-2">{u.phone || "ไม่มีข้อมูล"}</td>
-                                <td className="px-4 py-2">{u.department?.name || "ไม่มีข้อมูล"}</td>
-                                <td className="px-4 py-2 space-x-2">
-                                    <button className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 duration-200"
-                                        onClick={() => { setSelectedUser(u); setIsOpen(true); }}>View</button>
-                                    <button className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 duration-200"
-                                        onClick={() => handleEdit(u)}>Edit</button>
-                                    <button className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 duration-200"
-                                        onClick={() => handleDelete(u)}>Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* ── Pagination ── */}
-            <div className="flex justify-center items-center gap-2 mt-6">
-                <button
-                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                    Previous
-                </button>
-                <div className="flex gap-1">
-                    {Array.from({ length: Math.ceil(data.length / itemsPerPage) }, (_, i) => i + 1).map(page => (
-                        <button key={page} onClick={() => setCurrentPage(page)}
-                            className={`px-3 py-2 rounded ${currentPage === page ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>
-                            {page}
-                        </button>
-                    ))}
-                </div>
-                <button
-                    onClick={() => setCurrentPage(p => Math.min(p + 1, Math.ceil(data.length / itemsPerPage)))}
-                    disabled={currentPage === Math.ceil(data.length / itemsPerPage)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                    Next
-                </button>
-            </div>
+            {/* ── Table + Pagination ── */}
+            <UserTable
+                currentData={currentData}
+                data={data}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                setSelectedUser={setSelectedUser}
+                setIsOpen={setIsOpen}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+            />
 
             {/* ── View Modal ── */}
             {isOpen && selectedUser && (
@@ -358,7 +110,7 @@ const UsersComponent = () => {
                                 { label: "Email", value: selectedUser.email },
                                 { label: "Phone", value: selectedUser.phone },
                                 { label: "Age", value: selectedUser.age },
-                                { label: "Department", value: selectedUser.department?.name || "ไม่มีข้อมูล" },
+                                { label: "Department", value: selectedUser.department?.name },
                             ].map(({ label, value }) => (
                                 <div key={label} className="flex justify-between items-center py-2 border-b border-gray-100">
                                     <strong className="text-slate-600">{label}:</strong>
@@ -368,8 +120,8 @@ const UsersComponent = () => {
                             <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                 <strong className="text-slate-600">Gender:</strong>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedUser.gender === "male" ? "bg-blue-700 text-white" :
-                                    selectedUser.gender === "female" ? "bg-pink-400 text-white" :
-                                        "bg-gray-400 text-white"}`}>
+                                        selectedUser.gender === "female" ? "bg-pink-400 text-white" :
+                                            "bg-gray-400 text-white"}`}>
                                     {selectedUser.gender || "–"}
                                 </span>
                             </div>
